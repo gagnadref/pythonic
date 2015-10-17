@@ -66,17 +66,35 @@ def fast_painting(m, n, r_max, original):
 	squares = []
 	painting = []
 	t0 = time.time()
-	for r in range(r_max,1,-1):
+	fullSquares = getFullSquaresList(m, n, r_max, current, original)
+	t1 = time.time()
+	print(round(t1-t0,2))
+	nb_squares = len(fullSquares)
+	s = 0
+	while s < nb_squares:
+		i,j,r,g=(fullSquares[s][0],fullSquares[s][1],fullSquares[s][2],fullSquares[s][3])
+		g2 = gain2(i, j, r, original, current)
+		if g == -float('inf'):
+			pass
+		elif g2 == g or g2>=fullSquares[s+1][3]:
+			paint(i, j, r, current)
+			painting.append((i,j,r))
+		else:
+			insert(fullSquares,(i,j,r,g2), s, nb_squares)
+			nb_squares += 1
+		s+=1
+	t2 = time.time()
+	print(round(t2-t1,2))
+	ss = list(range(r_max,1,-1))
+	for r in ss:
 		for i in range(m-r+1):
 			for j in range(n-r+1):
 				g = gain2(i, j, r, original, current)
 				if g > -float('inf'):
 					squares.append((i,j,r,g))
-	t1 = time.time()
-	print(round(t1-t0,2))
 	squares.sort(key=lambda x: (-x[3],x[2]))
-	t2 = time.time()
-	print(round(t2-t1,2))
+	t3 = time.time()
+	print(round(t3-t2,2))
 	nb_squares = len(squares)
 	print(nb_squares)
 	s = 0
@@ -92,12 +110,12 @@ def fast_painting(m, n, r_max, original):
 			insert(squares,(i,j,r,g2), s, nb_squares)
 			nb_squares += 1
 		s+=1
-	t3 = time.time()
-	print(round(t3-t2,2))
+	t4 = time.time()
+	print(round(t4-t3,2))
+	print(round(t4-t0,2))
 	return painting, current
 
 def finish_painting(m, n, painting, current, original):
-	t4 = time.time()
 	for i in range(m):
 		for j in range(n):
 			if current[i][j] != original[i][j]:
@@ -107,9 +125,29 @@ def finish_painting(m, n, painting, current, original):
 				else:
 					painting.append((i,j,-1))
 					current[i][j] = 0
-	t5 = time.time()
-	print(round(t5-t4,2))
 	return painting
+
+def getFullSquaresList(m, n, r_max, current, original):
+	fullSquaresList = []
+	for i in range(m):
+		for j in range(n):
+			s = getMaxSize(m, n, i, j, 0, original)
+			if s>r_max:
+				g = gain2(i, j, r, original, current)
+				fullSquaresList.append((i,j,s,g))
+	fullSquaresList.sort(key=lambda x: -x[2])
+	return fullSquaresList
+
+def getMaxSize(m, n, i, j, k, original):
+	if j+k >= n and i+k >= m:
+		return k
+	for a in range(i,i+k+1):
+		if a >= m or j+k >= n or original[a][j+k] == 0:
+			return k
+	for b in range(j,j+k+1):
+		if b >= n or i+k >= m or original[i+k][b] == 0:
+			return k
+	return getMaxSize(m, n, i, j, k+1, original)
 
 def export_result(painting, filename):
 	with open(filename, 'w') as f:
@@ -126,8 +164,6 @@ if __name__ == "__main__":
 	for r in range(ss_min,ss_max):
 		r_max = min(m,n,r)
 		print(r_max)
-		print(m)
-		print(n)
 		painting, current = fast_painting(m, n, r_max, original)
 		painting = finish_painting(m, n, painting, current, original)
 		print(len(painting))
