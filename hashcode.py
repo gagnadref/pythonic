@@ -1,5 +1,6 @@
 import time
 import math
+import sys
 
 sqrts = [1/math.sqrt(x) for x in range(1,100)]
 
@@ -120,7 +121,9 @@ def export_result(painting, filename):
 
 if __name__ == "__main__":
 	m, n, original = import_image("xyz.txt")
-	for r in range(16,17):
+	ss_min = int(sys.argv[1]) if len(sys.argv) >= 2 else 10
+	ss_max = int(sys.argv[2]) if len(sys.argv) >= 3 else ss_min+1
+	for r in range(ss_min,ss_max):
 		r_max = min(m,n,r)
 		print(r_max)
 		print(m)
